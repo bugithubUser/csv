@@ -29,6 +29,7 @@ set(value,y,x)
 
 //将第y+1行设置为array
 setRow(array,y)
+```
 ### 获取 ###
 ```javascript
 //获取第y+1行，第x+1个元素的值
