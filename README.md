@@ -29,12 +29,19 @@ set(value,y,x)
 
 //将第y+1行设置为array
 setRow(array,y)
-```
-### 输出 ###
+### 获取 ###
 ```javascript
-//输出csv文件源码
-getContext()
+//获取第y+1行，第x+1个元素的值
+get(y,x)
 
-//生成名为filename（包含拓展名）的csv文件并下载
-outfile(filename)
+//获取csv文件源码
+getContext()
+```
+### 输出文件 ###
+```javascript
+//生成名为csv.csv的文件并下载
+outfile('csv.csv')
+
+//输出多个csv拼合的文件
+outfile('comboCsv.csv',[csv1,csv2,csv3])
 ```
