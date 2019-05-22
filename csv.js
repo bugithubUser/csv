@@ -71,7 +71,7 @@ function Csv()
 		return context;
 	}
 	// 导出文件
-	this.outfile=function(csvArray=[this],fileName='csv.csv')
+	this.outfile=function(fileName='csv.csv',csvArray=[this])
 	{
 		var content='';
 		csvArray.forEach(function(E,I,A)
