@@ -2,7 +2,7 @@ function Csv()
 {
 	var csvTable=[];
 	// 添加值
-	this.add=function(value,y=csvTable.length-1)
+	this.add=function(value,y=csvTable.length-1<0?0:csvTable.length-1)
 	{
 		if(csvTable[y]===undefined) csvTable[y]=[];
 		csvTable[y].push(value);
@@ -11,6 +11,30 @@ function Csv()
 	this.addRow=function(array)
 	{
 		csvTable.push(array);
+	}
+	// 添加表格
+	this.addHTMLTable=function(tableTrait,getValueFun=function(td){return td.innerText})
+	{
+		var targetTable=typeof(tableTrait)=='string'?document.querySelector(tableTrait):tableTrait;
+		var currentCsv=this;
+		var trs=targetTable.getElementsByTagName('tr');
+		[].forEach.call(trs,function(trE,trI,trA)
+		{
+			console.log(trI)
+			var tempArray=[];
+			[].forEach.call(trE.children,function(tdE,tdI,tdA)
+			{
+				tempArray.push(getValueFun(tdE));
+			});
+			currentCsv.addRow(tempArray);
+		});
+	}
+	// 移除
+	this.remove=function(y,x)
+	{
+		if(y===undefined) csvTable=[];
+		else if(x===undefined) csvTable.splice(y);
+		else csvTable[y].splice(x);
 	}
 	// 设置值
 	this.set=function(value,y,x)
@@ -23,29 +47,10 @@ function Csv()
 	{
 		csvTable[y]=array;
 	}
-	// 移除
-	this.remove=function(y,x)
+	// 获取某个格子的数据
+	this.get=function(y,x)
 	{
-		if(y===undefined) csvTable=[];
-		else if(x===undefined) csvTable.splice(y);
-		else csvTable[y].splice(x);
-	}
-	// 添加表格
-	this.addHTMLTable=function(tableTrait,getValueFun=function(td){return td.innerText})
-	{
-		var targetTable=typeof(tableTrait)=='string'?document.querySelector(tableTrait):tableTrait;
-		var currentCsv=this;
-		console.log(targetTable)
-		var trs=targetTable.getElementsByTagName('tr');
-		[].forEach.call(trs,function(trV,trI,trA)
-		{
-			var tempArray=[];
-			[].forEach.call(trV.children,function(tdV,tdI,tdA)
-			{
-				tempArray.push(getValueFun(tdV));
-			});
-			currentCsv.addRow(tempArray);
-		});
+		return csvTable[y][x];
 	}
 	// 获取csv源码
 	this.getContext=function()
@@ -66,12 +71,17 @@ function Csv()
 		return context;
 	}
 	// 导出文件
-	this.outfile=function(fileName='csv.csv')
+	this.outfile=function(fileName='csv.csv',csvArray=[this])
 	{
+		var content='';
+		csvArray.forEach(function(E,I,A)
+		{
+			content+=E.getContext();
+		});
 		var tempDownloadLink=document.createElement('a');
 		tempDownloadLink.style.display='none';
 		tempDownloadLink.download=fileName;
-		tempDownloadLink.href='data:text/csv;charset=utf-8,\uFEFF'+this.getContext();
+		tempDownloadLink.href='data:text/csv;charset=utf-8,\uFEFF'+content;
 		document.body.append(tempDownloadLink);
 		tempDownloadLink.click();
 		tempDownloadLink.remove();
