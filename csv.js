@@ -32,10 +32,26 @@ function Csv()
 			currentCsv.addRow(tempArray);
 		});
 	}
-	//添加csv文件
-	this.addCsvFile=function()
+	// 添加Csv对象
+	this.addCsv=function(csvObject)
 	{
-		var csvContent='';
+		csvObject.getAll().forEach(function(E,I,A)
+		{
+			csvTable.addRow(E);
+		});
+	}
+	// 添加二维数组
+	this.addArray=function(arrays)
+	{
+		arrays.forEach(function(E,I,A)
+		{
+			this.addRow(E);
+		},this);
+	}
+	// 添加csv/json文件
+	this.addFile=function(fileType=undefined)
+	{
+		var sourceCode='';
 		var readCsvFun=(function *(thisCsvObject)
 		{
 			tempCsvInput.onchange=function()
@@ -45,7 +61,7 @@ function Csv()
 					var readCsv=new FileReader();
 					readCsv.onload=function(event)
 					{
-						csvContent=event.target.result;
+						sourceCode=event.target.result;
 						readCsvFun.next();
 					};
 					readCsv.readAsText(tempCsvInput.files[0]);
@@ -55,16 +71,20 @@ function Csv()
 			document.body.append(tempCsvInput);
 			tempCsvInput.click();
 			yield;
-			thisCsvObject.addCsvCode(csvContent,thisCsvObject);
+			if(fileType===undefined) fileType=tempCsvInput.value.match(/(?<=\.)[^.]*$/)[0].toLowerCase();
+			if(fileType=='csv') thisCsvObject.addCsvCode.call(thisCsvObject,sourceCode);
+			else if(fileType=='json') thisCsvObject.addArray(JSON.parse(sourceCode));
+			else throw Error('输入文件类型错误，应选择csv或json文件');
 		})(this);
 
 		readCsvFun.next();
 	}
-	//解析并添加csv代码
-	this.addCsvCode=function(csvCode,thisCsvObject)
+	// 解析并添加csv代码
+	this.addCsvCode=function(csvCode)
 	{
 		var grids=csvCode.match(/(?<=^|,)(([^\n,"]*)|("([^"]*("")*)*"))(?=$|,)\n?/gm);
 		var tempArray=[];
+		var thisCsvObject=this;
 		grids.forEach(function(V,I,A)
 		{
 			if(V.charAt(V.length-1)=='\n') V=V.slice(0,-1);
@@ -100,8 +120,13 @@ function Csv()
 	{
 		return csvTable[y][x];
 	}
+	// 获取所有数据（副本）
+	this.getAll=function()
+	{
+		return JSON.parse(JSON.stringify(csvTable));
+	}
 	// 获取csv源码
-	this.getContent=function()
+	this.getSource=function()
 	{
 		var context='';
 		tempCsvInput.remove();
@@ -120,17 +145,17 @@ function Csv()
 		return context;
 	}
 	// 导出文件
-	this.outfile=function(fileName='csv.csv',csvArray=[this])
+	this.outfile=function(encodeType='csv',fileName=undefined)
 	{
-		var content='';
-		csvArray.forEach(function(E,I,A)
-		{
-			content+=E.getContent();
-		});
+		var sourceCode;
+		if(encodeType=='csv') sourceCode='data:text/csv;charset=utf-8,\uFEFF'+this.getSource();
+		else if(encodeType=='json') sourceCode='data:text/json;charset=utf-8,'+JSON.stringify(csvTable);
+		else throw Error('输出文件类型错误，应选择csv或json类型');
+
 		var tempDownloadLink=document.createElement('a');
 		tempDownloadLink.style.display='none';
-		tempDownloadLink.download=fileName;
-		tempDownloadLink.href='data:text/csv;charset=utf-8,\uFEFF'+content;
+		tempDownloadLink.download=fileName===undefined?'未命名.'+encodeType:fileName;
+		tempDownloadLink.href=sourceCode;
 		document.body.append(tempDownloadLink);
 		tempDownloadLink.click();
 		tempDownloadLink.remove();
@@ -141,3 +166,5 @@ function Csv()
 		return /[\n,"]+?/.test(text)?'"'+(text+'').replace(/"/g,'""')+'"':text;
 	}
 }
+
+var csv=new Csv();
